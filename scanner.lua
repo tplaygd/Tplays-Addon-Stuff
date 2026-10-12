@@ -443,6 +443,7 @@ ClientScanner = {
 		end),
 		Unequipped = parent.Unequipped:Connect(function()
 			inspecting = false
+			current = 0
 			if inspect_task then
 				task.cancel(inspect_task)
 				inspect_task = nil
