@@ -470,7 +470,11 @@ function fire()
 	end
 	stopAnim("inspect", 0)
 	stopAnim("inspect_open", 0)
-	current = (current+1)%(limit+(not hadRansom and math.random(0,100)==0 and 1 or 0))
+	if hadRansom or math.random(0,100)~=0 then
+		current = (current+1)%limit
+	else
+		current = #limit
+	end
 	local mode = current > 0 and order[current] or ""
 	if current <= 0 then
 		addAnim("close")
