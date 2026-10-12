@@ -348,14 +348,15 @@ function stopSound(soundName, reset)
 	end
 end
 local cd = -1/0
+local inspecting = false
 function fire()
 	if os.clock() < cd then return end
 	cd = os.clock()+.66
+	inspecting = false
 	if inspect_task then
 		task.cancel(inspect_task)
 		inspect_task = nil
 	end
-	inspecting = false
 	stopAnim("inspect", 0)
 	stopAnim("inspect_open", 0)
 	current = (current+1)%5
@@ -382,7 +383,7 @@ function fire()
 end
 local inspect = parent.Inspect
 parent.RemoteInspect.Name = "__RemoteInspect"
-local inspecting = false
+local inspectCd = -1/0
 local prevMode = ""
 ClientScanner = {
 	Connections = {
@@ -442,6 +443,10 @@ ClientScanner = {
 		end),
 		Unequipped = parent.Unequipped:Connect(function()
 			inspecting = false
+			if inspect_task then
+				task.cancel(inspect_task)
+				inspect_task = nil
+			end
 			for sound, _ in playingSounds do
 				stopSound(sound, true)
 			end
@@ -455,6 +460,8 @@ ClientScanner = {
 			end
 		end),
 		Inspect = inspect.Event:Connect(function()
+			if os.clock() < cd then return end
+			cd = os.clock()+.2
 			if parent:GetAttribute("CannotInspect") then return end
 			local mode = parent:GetAttribute("ScannerMode") or ""
 			if mode == "" then
