@@ -460,6 +460,7 @@ end
 local cd = -1/0
 local inspecting = false
 local hadRansom = false
+local closed = true
 function fire()
 	if os.clock() < cd then return end
 	cd = os.clock()+.66
@@ -477,6 +478,7 @@ function fire()
 	end
 	local mode = current > 0 and order[current] or ""
 	if current <= 0 then
+		closed = true
 		addAnim("close")
 		addAnim("idle")
 		stopAnim("idle_open", 0)
@@ -484,13 +486,15 @@ function fire()
 		playSound("CloseSystem")
 		stopSound("BootSystem", true)
 		stopSound("SystemIdle", true)
-	elseif current == 1 then
+	elseif current == 1 or (current > 1 and closed) then
+		closed = false
 		addAnim("open")
 		addAnim("idle_open", .3)
 		stopAnim("idle", 0)
 		playSound("BootSystem")
 		playSound("SystemIdle")
 	elseif current > 1 then
+		closed = false
 		addAnim("next_mode")
 		playSound("NextMode")
 	end
@@ -527,6 +531,7 @@ ClientScanner = {
 					task.cancel(inspect_task)
 					inspect_task = nil
 				end
+				closed = true
 				stopAnim("inspect", 0)
 				stopAnim("inspect_open", 0)
 				current = 0
