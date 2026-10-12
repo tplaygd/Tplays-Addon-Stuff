@@ -471,7 +471,7 @@ function fire()
 	end
 	stopAnim("inspect", 0)
 	stopAnim("inspect_open", 0)
-	if hadRansom or math.random(0,100)~=0 then
+	if hadRansom or math.random(0,10000)~=0 then
 		current = (current+1)%limit
 	else
 		current = limit
