@@ -31,7 +31,6 @@ if scanner and getgenv().CLIENT_SCANNER_LOADED then
 	restorefunction(require)
 	setthreadcontext(old)
 	scanner:Destroy()
-	getgenv().CLIENT_SCANNER_LOADED = nil
 	return
 end
 
@@ -128,7 +127,7 @@ const modules = {
 		Idle = "idleflash",
 		Tags = {},
 		Pulses = false,
-		Drain = 1.5,
+		Drain = 0,
 		PulseInterval = 3,
 		PulseRange = 1,
 		RevealTime = 1
@@ -144,7 +143,7 @@ const modules = {
 		Tags = {
 			ScannerThreat = "threat"
 		},
-		Drain = 2,
+		Drain = 0,
 		PulseInterval = 2,
 		PulseRange = 90,
 		RevealTime = 1.5,
@@ -329,9 +328,23 @@ function Dictionary:OnExit()
     end
 end
 
-return Dictionary]=])()}
+return Dictionary]=])()},
+	Ransom = {Module = {
+		Name = "Ransom",
+		Label = "RANS0M",
+		Color = Color3.fromRGB(95, 18, 18),
+		BootImage = "rbxassetid://11924266902",
+		BoxArt = "rbxassetid://11924266902",
+		Tags = {},
+		Pulses = false,
+		Drain = 0,
+		PulseInterval = 3,
+		PulseRange = 1,
+		RevealTime = 1
+	}},
 }
 const fake_modules = {}
+const order = {"Base", "Flashlight", "ThreatDetector", "Translator", "Ransom"}
 local started = false
 local loaded, loading = 0, 0
 remotes.CaptionClient:Fire("loading modules...")
@@ -352,8 +365,9 @@ for name, module in modules do
 end
 const timeout_load = os.clock()+5
 repeat task.wait() until os.clock() >= timeout_load or (started and loaded >= loading)
-const order = {"Base", "Flashlight", "ThreatDetector", "Translator"}
+local limit = 1
 local current = 0
+for _,_ in modules do limit += 1 end
 const iModule = scanner and scanner:FindFirstChild("ToolClientModule")
 const module = iModule and require(iModule)
 local old = getthreadcontext()
@@ -445,6 +459,7 @@ function stopSound(soundName, reset)
 end
 local cd = -1/0
 local inspecting = false
+local hadRansom = false
 function fire()
 	if os.clock() < cd then return end
 	cd = os.clock()+.66
@@ -455,7 +470,7 @@ function fire()
 	end
 	stopAnim("inspect", 0)
 	stopAnim("inspect_open", 0)
-	current = (current+1)%5
+	current = (current+1)%(limit+(not hadRansom and math.random(0,100)==0 and 1 or 0))
 	local mode = current > 0 and order[current] or ""
 	if current <= 0 then
 		addAnim("close")
@@ -485,6 +500,41 @@ ClientScanner = {
 	Connections = {
 		ModeChanged = parent:GetAttributeChangedSignal("ScannerMode"):Connect(function()
 			local mode = parent:GetAttribute("ScannerMode") or ""
+			if mode == "Ransom" then
+				hadRansom = true
+				parent:SetAttribute("CannotInspect", true)
+				parent:SetAttribute("ScannerLock", true)
+				parent:SetAttribute("DontUnequip", true)
+				task.wait()
+				player.PlayerGui.MainUI.Initiator.Main_Game.ToggleInventory:Fire(false)
+				task.wait(3)
+				parent:SetAttribute("CannotInspect", false)
+				task.wait()
+				inspect:Fire()
+				task.wait()
+				parent:SetAttribute("CannotInspect", true)
+				task.wait(5)
+				player.PlayerGui.MainUI.Initiator.Main_Game.ToggleInventory:Fire(true)
+				parent:SetAttribute("CannotInspect", false)
+				parent:SetAttribute("ScannerLock", false)
+				parent:SetAttribute("DontUnequip", nil)
+				inspecting = false
+				if inspect_task then
+					task.cancel(inspect_task)
+					inspect_task = nil
+				end
+				stopAnim("inspect", 0)
+				stopAnim("inspect_open", 0)
+				current = 0
+				addAnim("close")
+				addAnim("idle")
+				stopAnim("idle_open", 0)
+				stopAnim("idleflash", 0)
+				playSound("CloseSystem")
+				stopSound("BootSystem", true)
+				stopSound("SystemIdle", true)
+				setMode("")
+			end
 			if mode == "Flashlight" then
 				addAnim("idleflash")
 				stopAnim("idle_open", 0)
