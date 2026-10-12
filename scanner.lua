@@ -473,7 +473,7 @@ function fire()
 	if hadRansom or math.random(0,100)~=0 then
 		current = (current+1)%limit
 	else
-		current = #limit
+		current = limit
 	end
 	local mode = current > 0 and order[current] or ""
 	if current <= 0 then
