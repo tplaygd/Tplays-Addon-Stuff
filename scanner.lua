@@ -3,7 +3,7 @@ if game.PlaceId ~= 6839171747 then
 end
 _getexecutorname = identifyexecutor or identify_executor or getexecutorname or get_executor_name or function()
 	return "Unknown"
-end)
+end
 getexecutorname = function()
 	return _getexecutorname():match("[%a%s]+")
 end
