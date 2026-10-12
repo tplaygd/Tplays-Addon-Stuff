@@ -21,10 +21,10 @@ setthreadcontext = setthreadcontext or function() end
 getthreadcontext = getthreadcontext or function() end
 restoremetamethod = restoremetamethod or function() end
 restorefunction = restorefunction or function() end
-local player = game.Players.LocalPlayer
-local character = player.Character
+const player = game.Players.LocalPlayer
+const character = player.Character
 local scanner = player.Backpack:FindFirstChild("ClientObjectScanner") or character:FindFirstChild("ClientObjectScanner")
-if scanner then
+if scanner and getgenv().CLIENT_SCANNER_LOADED then
 	restoremetamethod(game, "__namecall")
 	local old = getthreadcontext()
 	setthreadcontext(2)
@@ -33,14 +33,92 @@ if scanner then
 	scanner:Destroy()
 	return
 end
-local remotes = game.ReplicatedStorage.RemotesFolder
+
+const root = "ClientObjectScanner"
+local fs; fs = {
+	rawurl = "https://raw.githubusercontent.com/tplaygd/Tplays-Addon-Stuff/main/",
+	makefolder = function(path: string): ()
+		makefolder(`{root}/{path}`)
+	end,
+	listfiles = function(path: string): {string}
+		return listfiles(`{root}/{path}`)
+	end,
+	readfile = function(path: string): string
+		return readfile(`{root}/{path}`)
+	end,
+	writefile = function(path: string, str: string): ()
+		writefile(`{root}/{path}`, str)
+	end,
+	delfile = function(path: string): ()
+		delfile(`{root}/{path}`)
+	end,
+	isfile = function(path: string): boolean
+		return isfile(`{root}/{path}`)
+	end,
+	getcustomasset = getcustomasset and (getexecutorname() == "Potassium" and function(path: string): string
+		const filename = path:gsub("[\\/]+", {
+			["\\"] = "_",
+			["/"] = "_"
+		})
+		writefile(filename, fs.readfile(path))
+		task.delay(.1, delfile, filename)
+		return getcustomasset(filename)
+	end or function(path: string): string
+		return getcustomasset(`{root}/{path}`)
+	end)
+}
+
+makefolder(root)
+
+fs.LoadCustomAsset = function(url: string, name: string?, cache_fallback: string?): string?
+	if fs.getcustomasset and request then
+		local fileName = `{name}` or `TMP_{tick()}`
+		local success, result = pcall(fs.getcustomasset, fileName)
+		result = success and result
+		if result and not cache_fallback then
+			return result
+		elseif url:lower():sub(1, 4) == 'http' then
+			local response = request({
+				Url = url,
+				Method = "GET"
+			})
+			if response.StatusCode == 200 then
+				fs.writefile(fileName, response.Body)
+				result = fs.getcustomasset(fileName)
+				if not name then
+					fs.delfile(fileName)
+				end
+				return result
+			elseif result and cache_fallback then
+				return result
+			end
+		elseif fs.isfile(url) then
+			return fs.getcustomasset(url)
+		end
+	else
+		warn("Executor doesn't support 'getcustomasset' or 'request', rbxassetid only.")
+	end
+	if url:find('rbxassetid') or tonumber(url) then
+		return 'rbxassetid://'..url:match('%d+')
+	end
+	error(debug.traceback('Failed to load custom asset for:\n'..url))
+end
+
+fs.LoadCustomInstance = function(url: string, name: string?): Instance?
+	local s, r = pcall(function()
+		return game:GetObjects(fs.LoadCustomAsset(url, name))[1]
+	end)
+	return s and r or nil
+end
+
+const remotes = game.ReplicatedStorage.RemotesFolder
 scanner = remotes.GetCleanTool:InvokeServer("ObjectScanner"):Clone()
 scanner.Name = "ClientObjectScanner"
 scanner.Parent = player.Backpack
 scanner:SetAttribute("Durability", 1)
 scanner:SetAttribute("DurabilityMax", nil)
-local modules = {
-	Flashlight = {
+const modules = {
+	Flashlight = {HasScreen = true, Module = {
 		Name = "Flashlight",
 		Label = "FLASHLIGHT",
 		Color = Color3.fromRGB(190, 196, 192),
@@ -53,8 +131,8 @@ local modules = {
 		PulseInterval = 3,
 		PulseRange = 1,
 		RevealTime = 1
-	},
-	ThreatDetector = {
+	}},
+	ThreatDetector = {Module = {
 		Name = "ThreatDetector",
 		Label = "THREAT DETECTOR",
 		Color = Color3.fromRGB(255, 52, 52),
@@ -70,8 +148,8 @@ local modules = {
 		PulseRange = 90,
 		RevealTime = 1.5,
 		FOVScale = 0.85
-	},
-	Translator = loadstring([=[local TweenService = game:GetService("TweenService")
+	}},
+	Translator = {HasScreen = true, Module = loadstring([=[local TweenService = game:GetService("TweenService")
 local TranslatorDialog = game.ReplicatedStorage.RemotesFolder:WaitForChild("TranslatorDialog")
 local Rng = Random.new()
 local Dictionary = {
@@ -250,22 +328,39 @@ function Dictionary:OnExit()
     end
 end
 
-return Dictionary]=])()
+return Dictionary]=])()}
 }
-local fake_modules = {}
-for name, _ in modules do
-	fake_modules[name] = Instance.new("ModuleScript")
+const fake_modules = {}
+local started = false
+local loaded, loading = 0, 0
+remotes.CaptionClient:Fire("loading modules...")
+for name, module in modules do
+	task.spawn(function()
+		started = true
+		loading += 1
+		task.wait()
+		const fake_module = Instance.new("ModuleScript")
+		const path = "ClientObjectScanner/Screen/"..name
+		const screen = module.HasScreen and fs.LoadCustomInstance(fs.rawurl..path, path)
+		if screen then
+			screen.Parent = fake_module
+		end
+		fake_modules[name] = fake_module
+		loaded += 1
+	end)
 end
-local order = {"Base", "Flashlight", "ThreatDetector", "Translator"}
+const timeout_load = os.clock()+5
+repeat task.wait() until os.clock() >= timeout_load or (started and loaded >= loading)
+const order = {"Base", "Flashlight", "ThreatDetector", "Translator"}
 local current = 0
-local iModule = scanner and scanner:FindFirstChild("ToolClientModule")
-local module = iModule and require(iModule)
+const iModule = scanner and scanner:FindFirstChild("ToolClientModule")
+const module = iModule and require(iModule)
 local old = getthreadcontext()
 setthreadcontext(2)
 local req; req = hookfunction(require, function(module)
 	for name, fake_module in fake_modules do
 		if module == fake_module then
-			return modules[name]
+			return modules[name].Module
 		end
 	end
 	return req(module)
@@ -277,13 +372,13 @@ local wait; wait = hookmetamethod(game, "__namecall", function(self, ...)
 	end
 	return wait(self, ...)
 end)
-local parent = debug.getupvalue(module.fire, 1)
-local anims = parent.Animations
-local handle = parent.Handle
-local priorities = {
+const parent = debug.getupvalue(module.fire, 1)
+const anims = parent.Animations
+const handle = parent.Handle
+const priorities = {
 	idle_open = "Action2"
 }
-local activeAnims = {}
+const activeAnims = {}
 function setMode(mode)
 	parent:SetAttribute("ScannerMode", mode)
 end
@@ -304,7 +399,7 @@ function addAnim(anim, ...)
 		return anim2
 	end
 end
-local function ok(anim, ...)
+function ok(anim, ...)
 	anim = parent.Animations:FindFirstChild(anim)
 	if anim then
 		for _, anim2 in character.Humanoid:GetPlayingAnimationTracks() do
@@ -329,7 +424,7 @@ function stopAnim(anim, ...)
 		ok(anim, ...)
 	end
 end
-local playingSounds = {}
+const playingSounds = {}
 function playSound(soundName)
 	local sound = handle:FindFirstChild(soundName)
 	sound = sound and sound:IsA("Sound") and sound
@@ -381,7 +476,7 @@ function fire()
 	end
 	setMode(mode)
 end
-local inspect = parent.Inspect
+const inspect = parent.Inspect
 parent.RemoteInspect.Name = "__RemoteInspect"
 local inspectCd = -1/0
 local prevMode = ""
@@ -499,3 +594,4 @@ hookfunction(module.fire, function()
 	fire()
 end)
 remotes.CaptionClient:Fire("script by @tplaygd, execute again to remove the scanner")
+getgenv().CLIENT_SCANNER_LOADED = true
