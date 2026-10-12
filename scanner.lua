@@ -490,4 +490,4 @@ hookfunction(module.fire, function()
 	end
 	fire()
 end)
-remotes.CaptionClient:FireServer("script by @tplaygd, execute again to remove the scanner")
+remotes.CaptionClient:Fire("script by @tplaygd, execute again to remove the scanner")
