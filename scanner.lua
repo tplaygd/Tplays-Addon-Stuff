@@ -2,10 +2,10 @@ if game.PlaceId ~= 6839171747 then
     error("game is not supported!")
 end
 _getexecutorname = identifyexecutor or identify_executor or getexecutorname or get_executor_name or function()
-		return "Unknown"
+	return "Unknown"
 end)
 getexecutorname = function()
-		return _getexecutorname():match("[%a%s]+")
+	return _getexecutorname():match("[%a%s]+")
 end
 setthreadcontext = setthreadcontext or set_thread_context
 getthreadcontext = getthreadcontext or get_thread_context
@@ -349,35 +349,35 @@ function stopSound(soundName, reset)
 end
 local cd = -1/0
 function fire()
-	  if os.clock() < cd then return end
-	  cd = os.clock()+.66
-	  if inspect_task then
-	    	task.cancel(inspect_task)
-	    	inspect_task = nil
-	  end
-	  inspecting = false
-	  stopAnim("inspect", 0)
-	  stopAnim("inspect_open", 0)
-        current = (current+1)%5
-	  local mode = current > 0 and order[current] or ""
-	  if current <= 0 then
+	if os.clock() < cd then return end
+	cd = os.clock()+.66
+	if inspect_task then
+	    task.cancel(inspect_task)
+	    inspect_task = nil
+	end
+	inspecting = false
+	stopAnim("inspect", 0)
+	stopAnim("inspect_open", 0)
+    current = (current+1)%5
+	local mode = current > 0 and order[current] or ""
+	if current <= 0 then
         addAnim("close")
-		    addAnim("idle")
-		    stopAnim("idle_open", 0)
-		    stopAnim("idleflash", 0)
-		    playSound("CloseSystem")
-		    stopSound("BootSystem", true)
-		    stopSound("SystemIdle", true)
+		addAnim("idle")
+		stopAnim("idle_open", 0)
+		stopAnim("idleflash", 0)
+		playSound("CloseSystem")
+		stopSound("BootSystem", true)
+		stopSound("SystemIdle", true)
     elseif current == 1 then
         addAnim("open")
-		    addAnim("idle_open", .3)
-		    stopAnim("idle", 0)
-		    playSound("BootSystem")
-		    playSound("SystemIdle")
-	  elseif current > 1 then
-		    addAnim("next_mode")
-		    playSound("NextMode")
-	  end
+		addAnim("idle_open", .3)
+		stopAnim("idle", 0)
+		playSound("BootSystem")
+		playSound("SystemIdle")
+	elseif current > 1 then
+		addAnim("next_mode")
+		playSound("NextMode")
+	end
     setMode(mode)
 end
 local inspect = parent.Inspect
@@ -385,35 +385,35 @@ parent.RemoteInspect.Name = "__RemoteInspect"
 local inspecting = false
 local prevMode = ""
 ClientScanner = {
-	  Connections = {
-		    ModeChanged = parent:GetAttributeChangedSignal("ScannerMode"):Connect(function()
-			      local mode = parent:GetAttribute("ScannerMode") or ""
-			      if mode == "Flashlight" then
-				        addAnim("idleflash")
-				        stopAnim("idle_open", 0)
-				        local Neon = handle:FindFirstChild("Neon")
-                if Neon then
-                    if Neon:GetAttribute("BaseTransparency") == nil then
-                        Neon:SetAttribute("BaseTransparency", Neon.Transparency)
-                        Neon:SetAttribute("BaseMaterial", Neon.Material.Name)
-                        Neon:SetAttribute("BaseColor", Neon.Color)
-                    end
-                    Neon.Material = Enum.Material.Neon
-                    Neon.Color = Color3.fromRGB(222, 255, 232)
-                    Neon.Transparency = 0.1
-                    for _, Descendant in Neon:QueryDescendants("Light, ParticleEmitter, Beam") do
-                        Descendant.Enabled = true
-                    end
+	Connections = {
+		ModeChanged = parent:GetAttributeChangedSignal("ScannerMode"):Connect(function()
+			local mode = parent:GetAttribute("ScannerMode") or ""
+			if mode == "Flashlight" then
+				addAnim("idleflash")
+				stopAnim("idle_open", 0)
+				local Neon = handle:FindFirstChild("Neon")
+            if Neon then
+                if Neon:GetAttribute("BaseTransparency") == nil then
+                	Neon:SetAttribute("BaseTransparency", Neon.Transparency)
+                    Neon:SetAttribute("BaseMaterial", Neon.Material.Name)
+                    Neon:SetAttribute("BaseColor", Neon.Color)
                 end
-                parent:SetAttribute("LightSourceStrong", true)
-                parent:SetAttribute("LightSource", true)
-                parent:SetAttribute("Enabled", true)
-			      elseif mode ~= "Flashlight" and prevMode == "Flashlight" then
-				        if mode ~= "" then
-					          addAnim("idle_open")
-					          stopAnim("idleflash", 0)
-				        end
-				        local Neon = handle:FindFirstChild("Neon")
+                Neon.Material = Enum.Material.Neon
+                Neon.Color = Color3.fromRGB(222, 255, 232)
+                Neon.Transparency = 0.1
+                for _, Descendant in Neon:QueryDescendants("Light, ParticleEmitter, Beam") do
+                    Descendant.Enabled = true
+                end
+            end
+            parent:SetAttribute("LightSourceStrong", true)
+            parent:SetAttribute("LightSource", true)
+            parent:SetAttribute("Enabled", true)
+			elseif mode ~= "Flashlight" and prevMode == "Flashlight" then
+				if mode ~= "" then
+					addAnim("idle_open")
+					stopAnim("idleflash", 0)
+				end
+				local Neon = handle:FindFirstChild("Neon")
                 if Neon then
                     Neon.Material = Enum.Material[Neon:GetAttribute("BaseMaterial") or "SmoothPlastic"]
                     Neon.Color = Neon:GetAttribute("BaseColor") or Neon.Color
@@ -425,9 +425,9 @@ ClientScanner = {
                 parent:SetAttribute("LightSourceStrong", nil)
                 parent:SetAttribute("LightSource", nil)
                 parent:SetAttribute("Enabled", false)
-			      end
-			      prevMode = mode or ""
-		    end),
+			end
+			prevMode = mode or ""
+		end),
         Equipped = parent.Equipped:Connect(function()
             local grip = character.RightHand:WaitForChild("RightGrip", 3)
             if grip then
@@ -440,54 +440,54 @@ ClientScanner = {
                 grip:Destroy()
             end
         end),
-		    Unequipped = parent.Unequipped:Connect(function()
-			      inspecting = false
-			      for sound, _ in playingSounds do
-				        stopSound(sound, true)
-			      end
-			      for anim, _ in activeAnims do
-				        stopAnim(anim)
-			      end
-			      setMode("")
+		Unequipped = parent.Unequipped:Connect(function()
+			inspecting = false
+			for sound, _ in playingSounds do
+				stopSound(sound, true)
+			end
+			for anim, _ in activeAnims do
+				stopAnim(anim)
+			end
+			setMode("")
             local motor6d = character.RightHand:WaitForChild("Handle", 3)
             if motor6d then
                 motor6d:Destroy()
             end
-		    end),
-		    Inspect = inspect.Event:Connect(function()
-			      if parent:GetAttribute("CannotInspect") then return end
-			      local mode = parent:GetAttribute("ScannerMode") or ""
-			      if mode == "" then
-				        stopAnim("inspect", 0)
-				        addAnim("inspect")
-			      elseif mode ~= "EGG" then
-				        if inspecting then
-					          inspecting = false
-					          if inspect_task then
-						            task.cancel(inspect_task)
-						            inspect_task = nil
-					          end
-					          local inspect_open = activeAnims["inspect_open"] or addAnim("inspect_open")
-					          inspect_open.TimePosition = 3
-					          inspect_open:AdjustSpeed(1)
-				        else
-					          inspecting = true
-					          stopAnim("inspect_open", 0)
-					          local inspect_anim = addAnim("inspect_open")
-					          inspect_task = task.delay(3, function()
-						            inspect_anim:AdjustSpeed(0)
-						            inspect_anim.TimePosition = 3
-						            inspect_task = nil
-					          end)
-				        end
-			      end
-		    end)
-	  }
+		end),
+		Inspect = inspect.Event:Connect(function()
+			if parent:GetAttribute("CannotInspect") then return end
+			local mode = parent:GetAttribute("ScannerMode") or ""
+			if mode == "" then
+				stopAnim("inspect", 0)
+				addAnim("inspect")
+			elseif mode ~= "EGG" then
+				if inspecting then
+					inspecting = false
+					if inspect_task then
+						task.cancel(inspect_task)
+						inspect_task = nil
+					end
+					local inspect_open = activeAnims["inspect_open"] or addAnim("inspect_open")
+					inspect_open.TimePosition = 3
+					inspect_open:AdjustSpeed(1)
+				else
+					inspecting = true
+					stopAnim("inspect_open", 0)
+					local inspect_anim = addAnim("inspect_open")
+					inspect_task = task.delay(3, function()
+						inspect_anim:AdjustSpeed(0)
+						inspect_anim.TimePosition = 3
+						inspect_task = nil
+					end)
+				end
+			end
+		end)
+	}
 }
 hookfunction(module.fire, function()
-	  if parent:GetAttribute("ScannerLock") then
-		    return
-	  end
-	  fire()
+	if parent:GetAttribute("ScannerLock") then
+		return
+	end
+	fire()
 end)
 remotes.CaptionClient:FireServer("script by @tplaygd, execute again to remove the scanner")
