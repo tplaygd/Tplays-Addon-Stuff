@@ -25,10 +25,10 @@ const player = game.Players.LocalPlayer
 const character = player.Character
 local scanner = player.Backpack:FindFirstChild("ClientObjectScanner") or character:FindFirstChild("ClientObjectScanner")
 if scanner and getgenv().CLIENT_SCANNER_LOADED then
-	restoremetamethod(game, "__namecall")
+	pcall(restoremetamethod, game, "__namecall")
 	local old = getthreadcontext()
 	setthreadcontext(2)
-	restorefunction(require)
+	pcall(restorefunction, require)
 	setthreadcontext(old)
 	scanner:Destroy()
 	return
