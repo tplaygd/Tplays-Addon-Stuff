@@ -31,6 +31,7 @@ if scanner and getgenv().CLIENT_SCANNER_LOADED then
 	restorefunction(require)
 	setthreadcontext(old)
 	scanner:Destroy()
+	getgenv().CLIENT_SCANNER_LOADED = nil
 	return
 end
 
