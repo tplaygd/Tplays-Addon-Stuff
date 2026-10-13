@@ -564,9 +564,6 @@ ClientScanner = {
 				local screen = player.PlayerGui.ScannerScreen
 				local modeui = screen.Frame.InnerFrame:WaitForChild("ModeUI", 1/0)
 				local video = modeui.VideoFrame
-				video.Size = UDim2.fromScale(1.125, 1.125)
-				video.AnchorPoint = Vector2.new(.5, .5)
-				video.Position = UDim2.fromScale(.5, .5)
 				video.Playing = true
 				repeat task.wait() until video.IsLoaded
 				task.wait(1)
