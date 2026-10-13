@@ -7,42 +7,29 @@ end
 getexecutorname = function()
 	return _getexecutorname():match("[%a%s]+")
 end
-setthreadcontext = setthreadcontext or set_thread_context
-getthreadcontext = getthreadcontext or get_thread_context
-restoremetamethod = restoremetamethod or restore_meta_method
-restorefunction = restorefunction or restore_function
-if not (hookfunction and hookmetamethod) then
-	error(`executor is not supported! ({getexecutorname()})`)
+if getgenv().CLIENT_SCANNER_RANSOM then
+	error("THERE'S NO ESCAPE")
 end
-if not (setthreadcontext and getthreadcontext and restoremetamethod and restorefunction) then
-	warn(`this script might be broken with your executor! ({getexecutorname()})`)
+if not (readfile and writefile and makefolder and delfile and isfile) then
+	error(`your executor doesn't have workspace folder! {getexecutorname()}`)
 end
-setthreadcontext = setthreadcontext or function() end
-getthreadcontext = getthreadcontext or function() end
-restoremetamethod = restoremetamethod or function() end
-restorefunction = restorefunction or function() end
+if not getcustomasset then
+	error(`your executor can't load custom assets! {getexecutorname()}`)
+end
+if not (debug and debug.getupvalue) then
+	error(`your executor can't get function's upvalues! {getexecutorname()}`)
+end
 const player = game.Players.LocalPlayer
 const character = player.Character
 local scanner = player.Backpack:FindFirstChild("ClientObjectScanner") or character:FindFirstChild("ClientObjectScanner")
 if scanner and getgenv().CLIENT_SCANNER_LOADED then
-	pcall(restoremetamethod, game, "__namecall")
-	local old = getthreadcontext()
-	setthreadcontext(2)
-	pcall(restorefunction, require)
-	setthreadcontext(old)
 	scanner:Destroy()
 	return
 end
 
 const root = "ClientObjectScanner"
 local fs; fs = {
-	rawurl = "https://raw.githubusercontent.com/tplaygd/Tplays-Addon-Stuff/main/",
-	makefolder = function(path: string): ()
-		makefolder(`{root}/{path}`)
-	end,
-	listfiles = function(path: string): {string}
-		return listfiles(`{root}/{path}`)
-	end,
+	rawurl = `https://raw.githubusercontent.com/tplaygd/Tplays-Addon-Stuff/main/{root}/`,
 	readfile = function(path: string): string
 		return readfile(`{root}/{path}`)
 	end,
@@ -118,6 +105,22 @@ scanner.Parent = player.Backpack
 scanner:SetAttribute("Durability", 1)
 scanner:SetAttribute("DurabilityMax", nil)
 const modules = {
+	Base = {Module = {
+		Name = "Base",
+		Label = "SCANNER",
+		Color = Color3.fromRGB(124, 165, 116),
+		BootImage = "rbxassetid://100718803042146",
+		BoxArt = "rbxassetid://100718803042146",
+		Tags = {
+			SalvageDrop = "star",
+			RBS = "star",
+			ScannerBox = "box"
+		},
+		Drain = 1,
+		PulseInterval = 2.5,
+		PulseRange = 60,
+		RevealTime = 2
+	}},
 	Flashlight = {HasScreen = true, Module = {
 		Name = "Flashlight",
 		Label = "FLASHLIGHT",
@@ -149,192 +152,221 @@ const modules = {
 		RevealTime = 1.5,
 		FOVScale = 0.85
 	}},
+	GoldDetector = {Module = {
+		Name = "GoldDetector",
+		Label = "GOLD DETECTOR",
+		Color = Color3.fromRGB(218, 198, 85),
+		BootImage = "rbxassetid://16587947721",
+		BoxArt = "rbxassetid://16587947721",
+		Tags = {
+			ScannerGold = "star",
+			ScannerDrawer = "box"
+		},
+		Drain = 0,
+		PulseInterval = 2.5,
+		PulseRange = 60,
+		RevealTime = 2
+	}},
+	Replicator = {Module = {
+		Name = "Replicator",
+		Label = "REPLICATOR",
+		Color = Color3.fromRGB(150, 150, 150),
+		BootImage = "rbxassetid://0",
+		BoxArt = "rbxassetid://0",
+		Tags = {
+			ScannerScaryPartTag = "box"
+		},
+		Drain = 0,
+		PulseInterval = 1,
+		PulseRange = 60,
+		RevealTime = 1
+	}},
 	Translator = {HasScreen = true, Module = loadstring([=[local TweenService = game:GetService("TweenService")
 local TranslatorDialog = game.ReplicatedStorage.RemotesFolder:WaitForChild("TranslatorDialog")
 local Rng = Random.new()
 local Dictionary = {
-    Name = "Translator",
-    Label = "TRANSLATOR",
-    Color = Color3.fromRGB(112, 87, 177),
-    BootImage = "rbxassetid://129244684951811",
-    BoxArt = "rbxassetid://129244684951811",
-    Tags = {},
-    Pulses = false,
-    Drain = 2,
-    PulseInterval = 3,
-    PulseRange = 40,
-    RevealTime = 1
+	Name = "Translator",
+	Label = "TRANSLATOR",
+	Color = Color3.fromRGB(112, 87, 177),
+	BootImage = "rbxassetid://129244684951811",
+	BoxArt = "rbxassetid://129244684951811",
+	Tags = {},
+	Pulses = false,
+	Drain = 2,
+	PulseInterval = 3,
+	PulseRange = 40,
+	RevealTime = 1
 }
 
 local function Glyph()
-    local Number = Rng:NextInteger(1, 41)
-    return (string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number))
+	local Number = Rng:NextInteger(1, 41)
+	return (string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number))
 end
 
 local function Decode(Arg, Label, Text, Duration, Session)
-    local Array = {}
-    local List = {}
-    local List2 = {}
+	local Array = {}
+	local List = {}
+	local List2 = {}
 
-    for Index = 1, #Text do
-        Array[Index] = string.sub(Text, Index, Index)
-    end
+	for Index = 1, #Text do
+		Array[Index] = string.sub(Text, Index, Index)
+	end
 
-    local function render(Arg)
-        Label.Text = table.concat(List) .. (Arg or "")
-    end
+	local function render(Arg)
+		Label.Text = table.concat(List) .. (Arg or "")
+	end
 
-    for Key, Item in Array do
-        if Arg.session ~= Session then
-            return
-        end
+	for Key, Item in Array do
+		if Arg.session ~= Session then
+			return
+		end
 
-        if Item == " " then
-            List[Key] = " "
-            Label.Text = table.concat(List) .. ""
-        else
-            for _ = 1, Rng:NextInteger(2, 5) do
-                local Number = Rng:NextInteger(1, 41)
-                local Substring = string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number)
-                Label.Text = table.concat(List) .. (Substring or "")
-                task.wait(Duration)
+		if Item == " " then
+			List[Key] = " "
+			Label.Text = table.concat(List) .. ""
+		else
+			for _ = 1, Rng:NextInteger(2, 5) do
+				local Number = Rng:NextInteger(1, 41)
+				local Substring = string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number)
+				Label.Text = table.concat(List) .. (Substring or "")
+				task.wait(Duration)
 
-                if Arg.session ~= Session then
-                    return
-                end
-            end
+				if Arg.session ~= Session then
+					return
+				end
+			end
 
-            if Rng:NextNumber() < 0.15 then
-                local Number = Rng:NextInteger(1, 41)
-                List[Key] = string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number)
-                table.insert(List2, Key)
-            else
-                List[Key] = Item
-            end
+			if Rng:NextNumber() < 0.15 then
+				local Number = Rng:NextInteger(1, 41)
+				List[Key] = string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number)
+				table.insert(List2, Key)
+			else
+				List[Key] = Item
+			end
 
-            Label.Text = table.concat(List) .. ""
-        end
-    end
+			Label.Text = table.concat(List) .. ""
+		end
+	end
 
-    for _, Item in List2 do
-        task.wait(Duration * 4)
+	for _, Item in List2 do
+		task.wait(Duration * 4)
 
-        for _ = 1, Rng:NextInteger(2, 4) do
-            if Arg.session ~= Session then
-                return
-            end
+		for _ = 1, Rng:NextInteger(2, 4) do
+			if Arg.session ~= Session then
+				return
+			end
 
-            local Number = Rng:NextInteger(1, 41)
-            List[Item] = string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number)
-            Label.Text = table.concat(List) .. ""
-            task.wait(Duration)
-        end
+			local Number = Rng:NextInteger(1, 41)
+			List[Item] = string.sub("abcdefghijklmnopqrstuvwxyz0123456789#%&?!", Number, Number)
+			Label.Text = table.concat(List) .. ""
+			task.wait(Duration)
+		end
 
-        List[Item] = Array[Item]
-        Label.Text = table.concat(List) .. ""
-    end
+		List[Item] = Array[Item]
+		Label.Text = table.concat(List) .. ""
+	end
 end
 
 local function Reset(Ui)
-    for _, Item in { Ui.Speaker, Ui.Dialog } do
-        Item.Text = ""
-        Item.TextTransparency = 0
-        local UIStroke = Item:FindFirstChildWhichIsA("UIStroke")
+	for _, Item in { Ui.Speaker, Ui.Dialog } do
+		Item.Text = ""
+		Item.TextTransparency = 0
+		local UIStroke = Item:FindFirstChildWhichIsA("UIStroke")
 
-        if UIStroke then
-            UIStroke.Transparency = 0
-        end
-    end
+		if UIStroke then
+			UIStroke.Transparency = 0
+		end
+	end
 end
 
 local function Waiting(Data, Session)
-    Reset(Data.ui)
-    Data.ui.Speaker.TextColor3 = Data.color
-    local Count = 0
+	Reset(Data.ui)
+	Data.ui.Speaker.TextColor3 = Data.color
+	local Count = 0
 
-    while Data.session == Session do
-        Data.ui.Speaker.Text = "WAITING" .. string.rep(".", Count)
-        Count = (Count + 1) % 4
-        task.wait(0.4)
-    end
+	while Data.session == Session do
+		Data.ui.Speaker.Text = "WAITING" .. string.rep(".", Count)
+		Count = (Count + 1) % 4
+		task.wait(0.4)
+	end
 end
 
 local function Fade(Arg, Session)
-    task.wait(30)
+	task.wait(30)
 
-    if Arg.session ~= Session then
-        return
-    end
+	if Arg.session ~= Session then
+		return
+	end
 
-    for _, Item in { Arg.ui.Speaker, Arg.ui.Dialog } do
-        TweenService:Create(Item, TweenInfo.new(3), {
-            TextTransparency = 1
-        }):Play()
-        local UIStroke = Item:FindFirstChildWhichIsA("UIStroke")
+	for _, Item in { Arg.ui.Speaker, Arg.ui.Dialog } do
+		TweenService:Create(Item, TweenInfo.new(3), {
+			TextTransparency = 1
+		}):Play()
+		local UIStroke = Item:FindFirstChildWhichIsA("UIStroke")
 
-        if UIStroke then
-            TweenService:Create(UIStroke, TweenInfo.new(3), {
-                Transparency = 1
-            }):Play()
-        end
-    end
+		if UIStroke then
+			TweenService:Create(UIStroke, TweenInfo.new(3), {
+				Transparency = 1
+			}):Play()
+		end
+	end
 
-    task.wait(3)
+	task.wait(3)
 
-    if Arg.session ~= Session then
-        return
-    end
+	if Arg.session ~= Session then
+		return
+	end
 
-    Arg.session += 1
-    task.spawn(Waiting, Arg, Arg.session)
+	Arg.session += 1
+	task.spawn(Waiting, Arg, Arg.session)
 end
 
 function Dictionary:OnEnter()
-    local Ui = self.ui
+	local Ui = self.ui
 
-    if not Ui then
-        return
-    end
+	if not Ui then
+		return
+	end
 
-    Ui.Speaker.TextColor3 = self.color
-    Ui.Dialog.TextColor3 = self.color
-    self.session = 0
-    task.spawn(Waiting, self, 0)
-    self.translate = TranslatorDialog.OnClientEvent:Connect(function(Arg, Arg2, Arg3, Arg4)
-        local self2 = self
-        self2.session += 1
-        local Session = self.session
-        self.flash()
-        Reset(Ui)
-        task.spawn(Decode, self, Ui.Speaker, string.upper(Arg4 or ""), 0.02, Session)
-        task.spawn(function()
-            task.wait(0.15)
-            Decode(self, Ui.Dialog, Arg2, 0.035, Session)
-            Fade(self, Session)
-        end)
-    end)
+	Ui.Speaker.TextColor3 = self.color
+	Ui.Dialog.TextColor3 = self.color
+	self.session = 0
+	task.spawn(Waiting, self, 0)
+	self.translate = TranslatorDialog.OnClientEvent:Connect(function(Arg, Arg2, Arg3, Arg4)
+		local self2 = self
+		self2.session += 1
+		local Session = self.session
+		self.flash()
+		Reset(Ui)
+		task.spawn(Decode, self, Ui.Speaker, string.upper(Arg4 or ""), 0.02, Session)
+		task.spawn(function()
+			task.wait(0.15)
+			Decode(self, Ui.Dialog, Arg2, 0.035, Session)
+			Fade(self, Session)
+		end)
+	end)
 end
 
 function Dictionary:OnExit()
-    if self.translate then
-        self.translate:Disconnect()
-        self.translate = nil
-    end
+	if self.translate then
+		self.translate:Disconnect()
+		self.translate = nil
+	end
 
-    self.session = (self.session or 0) + 1
+	self.session = (self.session or 0) + 1
 
-    if self.ui then
-        Reset(self.ui)
-    end
+	if self.ui then
+		Reset(self.ui)
+	end
 end
 
 return Dictionary]=])()},
-	Ransom = {Module = {
+	Ransom = {HasScreen = true, Module = {
 		Name = "Ransom",
 		Label = "RANS0M",
 		Color = Color3.fromRGB(95, 18, 18),
-		BootImage = "rbxassetid://11924266902",
-		BoxArt = "rbxassetid://11924266902",
+		BootImage = "rbxassetid://0",--"rbxassetid://11924266902"
+		BoxArt = "rbxassetid://0",--"rbxassetid://11924266902"
 		Tags = {},
 		Pulses = false,
 		Drain = 0,
@@ -343,8 +375,7 @@ return Dictionary]=])()},
 		RevealTime = 1
 	}},
 }
-const fake_modules = {}
-const order = {"Base", "Flashlight", "ThreatDetector", "Translator", "Ransom"}
+const order = {"Base", "Flashlight", "ThreatDetector", "GoldDetector", "Replicator", "Translator"}
 local started = false
 local loaded, loading = 0, 0
 remotes.CaptionClient:Fire("loading modules...")
@@ -353,40 +384,22 @@ for name, module in modules do
 		started = true
 		loading += 1
 		task.wait()
-		const fake_module = Instance.new("ModuleScript")
-		const path = "ClientObjectScanner/Screen/"..name
+		const path = "Screen/"..name
 		const screen = module.HasScreen and fs.LoadCustomInstance(fs.rawurl..path, path)
 		if screen then
-			screen.Parent = fake_module
+			module.HasScreen = false
+			module.Screen = screen
 		end
-		fake_modules[name] = fake_module
 		loaded += 1
 	end)
 end
 const timeout_load = os.clock()+5
 repeat task.wait() until os.clock() >= timeout_load or (started and loaded >= loading)
-local limit = 1
+local limit = #order
 local current = 0
-for _,_ in modules do limit += 1 end
 const iModule = scanner and scanner:FindFirstChild("ToolClientModule")
+const baseModule = iModule.Base
 const module = iModule and require(iModule)
-local old = getthreadcontext()
-setthreadcontext(2)
-local req; req = hookfunction(require, function(module)
-	for name, fake_module in fake_modules do
-		if module == fake_module then
-			return modules[name].Module
-		end
-	end
-	return req(module)
-end)
-setthreadcontext(old)
-local wait; wait = hookmetamethod(game, "__namecall", function(self, ...)
-	if not checkcaller() and self == iModule and getnamecallmethod() == "FindFirstChild" then
-		return fake_modules[({...})[1]] or wait(self, ...)
-	end
-	return wait(self, ...)
-end)
 const parent = debug.getupvalue(module.fire, 1)
 const anims = parent.Animations
 const handle = parent.Handle
@@ -395,6 +408,17 @@ const priorities = {
 }
 const activeAnims = {}
 function setMode(mode)
+	local module = modules[mode] or modules.Base
+	baseModule.Name = module.Module.Name
+	local requiredBaseModule = require(baseModule)
+	table.clear(requiredBaseModule)
+	for key, val in module.Module do
+		requiredBaseModule[key] = val
+	end
+	baseModule:ClearAllChildren()
+	if module.Screen then
+		module.Screen:Clone().Parent = baseModule
+	end
 	parent:SetAttribute("ScannerMode", mode)
 end
 function addAnim(anim, ...)
@@ -471,13 +495,13 @@ function fire()
 	end
 	stopAnim("inspect", 0)
 	stopAnim("inspect_open", 0)
-	if hadRansom or math.random(0,10000)~=0 then
-		current = (current+1)%limit
-	else
-		current = limit
+	local alt_current
+	current = (current+1)%(limit+1)
+	if not hadRansom and math.random(0,10000)==0 then
+		alt_current = "Ransom"
 	end
-	local mode = current > 0 and order[current] or ""
-	if current <= 0 then
+	local mode = alt_current or (current > 0 and order[current]) or ""
+	if current <= 0 and not alt_current then
 		closed = true
 		addAnim("close")
 		addAnim("idle")
@@ -486,14 +510,14 @@ function fire()
 		playSound("CloseSystem")
 		stopSound("BootSystem", true)
 		stopSound("SystemIdle", true)
-	elseif current == 1 or (current > 1 and closed) then
+	elseif current == 1 or ((current > 1 or alt_current) and closed) then
 		closed = false
 		addAnim("open")
 		addAnim("idle_open", .3)
 		stopAnim("idle", 0)
 		playSound("BootSystem")
 		playSound("SystemIdle")
-	elseif current > 1 then
+	elseif current > 1 or alt_current then
 		closed = false
 		addAnim("next_mode")
 		playSound("NextMode")
@@ -504,24 +528,55 @@ const inspect = parent.Inspect
 parent.RemoteInspect.Name = "__RemoteInspect"
 local inspectCd = -1/0
 local prevMode = ""
+function AddGoldTag(GoldPile)
+	GoldPile:AddTag("ScannerGold")
+end
+function AddDrawerTag(Loot)
+	Loot:AddTag("ScannerDrawer")
+end
+function AddPartTag(Part)
+	Part:AddTag("ScannerScaryPartTag")
+end
+for _, GoldPile in workspace.CurrentRooms:QueryDescendants("Model#GoldPile") do
+	AddGoldTag(GoldPile)
+end
+for _, Loot in workspace.CurrentRooms:QueryDescendants("Model#DrawerContainer, Model#ChestBox, Model#ChestBoxLocked") do
+	AddDrawerTag(Loot)
+end
+--[[local backpack, prevBackpack = player.Backpack:GetChildren(), {}
+table.insert(backpack, character:FindFirstChildOfClass("Tool"))
+prevBackpack = backpack
+function justPickedUp(tool)
+	return not (table.find(backpack, tool) or table.find(prevBackpack, tool))
+end]]
+const CollectionService = game:GetService("CollectionService")
 ClientScanner = {
 	Connections = {
 		ModeChanged = parent:GetAttributeChangedSignal("ScannerMode"):Connect(function()
 			local mode = parent:GetAttribute("ScannerMode") or ""
 			if mode == "Ransom" then
+				getgenv().CLIENT_SCANNER_RANSOM = true
 				hadRansom = true
 				parent:SetAttribute("CannotInspect", true)
 				parent:SetAttribute("ScannerLock", true)
 				parent:SetAttribute("DontUnequip", true)
 				task.wait()
 				player.PlayerGui.MainUI.Initiator.Main_Game.ToggleInventory:Fire(false)
-				task.wait(3)
+				local screen = player.PlayerGui.ScannerScreen
+				local modeui = screen.Frame.InnerFrame:WaitForChild("ModeUI", 1/0)
+				local video = modeui.VideoFrame
+				video.Size = UDim2.fromScale(1.1, 1.1)
+				video.AnchorPoint = Vector2.new(.5, .5)
+				video.Position = UDim2.fromScale(.5, .5)
+				video.Playing = true
+				repeat task.wait() until video.IsLoaded
+				task.wait(1)
 				parent:SetAttribute("CannotInspect", false)
 				task.wait()
 				inspect:Fire()
 				task.wait()
 				parent:SetAttribute("CannotInspect", true)
-				task.wait(5)
+				repeat task.wait() until not video.Playing
 				player.PlayerGui.MainUI.Initiator.Main_Game.ToggleInventory:Fire(true)
 				parent:SetAttribute("CannotInspect", false)
 				parent:SetAttribute("ScannerLock", false)
@@ -543,6 +598,7 @@ ClientScanner = {
 				stopSound("BootSystem", true)
 				stopSound("SystemIdle", true)
 				setMode("")
+				getgenv().CLIENT_SCANNER_RANSOM = nil
 			end
 			if mode == "Flashlight" then
 				addAnim("idleflash")
@@ -597,6 +653,11 @@ ClientScanner = {
 			end
 		end),
 		Unequipped = parent.Unequipped:Connect(function()
+			--[[local tool = character:FindFirstChildOfClass("Tool")
+			if tool and justPickedUp(tool) then
+				scanner.Parent = character
+				return
+			end]]
 			inspecting = false
 			current = 0
 			if inspect_task then
@@ -644,9 +705,96 @@ ClientScanner = {
 					end)
 				end
 			end
-		end)
+		end),
+		GoldAdded = workspace.CurrentRooms.DescendantAdded:Connect(function(GoldPile)
+			if GoldPile:IsA("Model") and GoldPile.Name == "GoldPile" then
+				AddGoldTag(GoldPile)
+			end
+		end),
+		LootAdded = workspace.CurrentRooms.DescendantAdded:Connect(function(Loot)
+			if Loot:IsA("Model") and (Loot.Name == "DrawerContainer" or Loot.Name == "ChestBox" or Loot.Name == "ChestBoxLocked") then
+				AddDrawerTag(Loot)
+			end
+		end),
+		Replicator = {
+			Connections = {},
+			Func = function(self)
+				for _, Part in CollectionService:GetTagged("ScannerScaryPartTag") do
+					Part:RemoveTag("ScannerScaryPartTag")
+				end
+				local room = workspace.CurrentRooms:FindFirstChild(player:GetAttribute("CurrentRoom"))
+				if self.Connections.PartAdded then
+					self.Connections.PartAdded:Disconnect()
+				end
+				self.Connections.PartAdded = room.DescendantAdded:Connect(function(Part)
+					if Part:IsA("BasePart") and Part.Transparency < 1 and Part:IsDescendantOf(room) then
+						AddPartTag(Part)
+					end
+				end)
+				for _, Part in room:GetDescendants() do
+					if Part:IsA("BasePart") and Part.Transparency < 1 then
+						AddPartTag(Part)
+					end
+				end
+			end,
+			Init = function(self)
+				self:Func()
+				self.Connections.RoomChanged = player:GetAttributeChangedSignal("CurrentRoom"):Connect(function()
+					self:Func()
+				end)
+			end
+		}
+		--[[Backpack = {
+			Connections = {},
+			Func = function()
+				prevBackpack = backpack
+				backpack = LocalPlayer.Backpack:GetChildren()
+				table.insert(backpack, character:FindFirstChildOfClass("Tool"))
+			end,
+			Init = function(self)
+				self.Connections.Added = LocalPlayer.Backpack.ChildAdded:Connect(self.Func)
+				self.Connections.Removed = LocalPlayer.Backpack.ChildRemoved:Connect(self.Func)
+			end
+		}]]
+	},
+	Tags = {
+		"ScannerGold",
+		"ScannerDrawer",
+		"ScannerScaryPartTag"
 	}
 }
+function initAllConnections(t)
+	for _, c in t do
+		if typeof(c) == "table" and c.Init then
+			c:Init()
+		elseif typeof(c) == "table" then
+			initAllConnections(c)
+		end
+	end
+end
+function disconnectConnections(t)
+	for _, c in t do
+		if typeof(c) == "table" then
+			disconnectConnections(c)
+		elseif typeof(c) == "RBXScriptConnection" and c.Disconnect then
+			pcall(c.Disconnect)
+		end
+	end
+	table.clear(t)
+end
+function clearTags(t)
+	for _, c in t do
+		if typeof(c) == "table" then
+			clearTags(c)
+		elseif typeof(c) == "string" then
+			for _, i in CollectionService:GetTagged(c) do
+				i:RemoveTag(c)
+			end
+		end
+	end
+	table.clear(t)
+end
+initAllConnections(ClientScanner.Connections)
 hookfunction(module.fire, function()
 	if parent:GetAttribute("ScannerLock") then
 		return
@@ -655,3 +803,10 @@ hookfunction(module.fire, function()
 end)
 remotes.CaptionClient:Fire("script by @tplaygd, execute again to remove the scanner")
 getgenv().CLIENT_SCANNER_LOADED = true
+while getgenv().CLIENT_SCANNER_LOADED do
+	task.wait()
+end
+disconnectConnections(ClientScanner.Connections)
+clearTags(ClientScanner.Tags)
+table.clear(ClientScanner)
+ClientScanner = nil
