@@ -270,6 +270,8 @@ end
 briefcase.Name = "ClientBriefcase"
 briefcase.Parent = player.Backpack
 
+remotes.CaptionClient:Fire("script by @tplaygd, execute again to remove the scanner")
+
 while briefcase.Parent do
 	task.wait()
 end
