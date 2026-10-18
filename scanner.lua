@@ -22,8 +22,7 @@ end
 const player = game.Players.LocalPlayer
 const character = player.Character
 local scanner = player.Backpack:FindFirstChild("ClientObjectScanner") or character:FindFirstChild("ClientObjectScanner")
-if scanner and getgenv().CLIENT_SCANNER_LOADED then
-	getgenv().CLIENT_BRIEFCASE_LOADED = nil
+if scanner then
 	scanner:Destroy()
 	return
 end
@@ -485,7 +484,10 @@ local cd = -1/0
 local inspecting = false
 local hadRansom = false
 local closed = true
-function fire()
+function module.fire()
+	if parent:GetAttribute("ScannerLock") then
+		return
+	end
 	if os.clock() < cd then return end
 	cd = os.clock()+.66
 	inspecting = false
@@ -792,15 +794,8 @@ function clearTags(t)
 	table.clear(t)
 end
 initAllConnections(ClientScanner.Connections)
-hookfunction(module.fire, function()
-	if parent:GetAttribute("ScannerLock") then
-		return
-	end
-	fire()
-end)
 remotes.CaptionClient:Fire("script by @tplaygd, execute again to remove the scanner")
-getgenv().CLIENT_SCANNER_LOADED = true
-while getgenv().CLIENT_SCANNER_LOADED do
+while parent.Parent do
 	task.wait()
 end
 disconnectConnections(ClientScanner.Connections)
