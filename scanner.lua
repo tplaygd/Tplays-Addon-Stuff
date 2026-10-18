@@ -23,6 +23,7 @@ const player = game.Players.LocalPlayer
 const character = player.Character
 local scanner = player.Backpack:FindFirstChild("ClientObjectScanner") or character:FindFirstChild("ClientObjectScanner")
 if scanner and getgenv().CLIENT_SCANNER_LOADED then
+	getgenv().CLIENT_BRIEFCASE_LOADED = nil
 	scanner:Destroy()
 	return
 end
