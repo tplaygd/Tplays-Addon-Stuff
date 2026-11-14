@@ -1,0 +1,8 @@
+mspaint.AddonInfo = {
+  Name = "TplaysAddon"
+  Title = "Tplay's Addon",
+  Description = "detected",
+  Game = "*"
+}
+
+print("testing update with single button in addon")
